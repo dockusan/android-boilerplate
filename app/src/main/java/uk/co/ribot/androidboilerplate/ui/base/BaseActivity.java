@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import timber.log.Timber;
 import uk.co.ribot.androidboilerplate.BoilerplateApplication;
 import uk.co.ribot.androidboilerplate.injection.component.ActivityComponent;
 import uk.co.ribot.androidboilerplate.injection.component.ConfigPersistentComponent;
@@ -40,7 +39,6 @@ public class BaseActivity extends AppCompatActivity {
         ConfigPersistentComponent configPersistentComponent = sComponentsMap.get(mActivityId, null);
 
         if (configPersistentComponent == null) {
-            Timber.i("Creating new ConfigPersistentComponent id=%d", mActivityId);
             configPersistentComponent = DaggerConfigPersistentComponent.builder()
                     .applicationComponent(BoilerplateApplication.get(this).getComponent())
                     .build();
@@ -58,7 +56,6 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (!isChangingConfigurations()) {
-            Timber.i("Clearing ConfigPersistentComponent id=%d", mActivityId);
             sComponentsMap.remove(mActivityId);
         }
         super.onDestroy();

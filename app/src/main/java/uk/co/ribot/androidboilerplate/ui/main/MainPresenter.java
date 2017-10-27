@@ -4,23 +4,21 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.reactivex.Observer;
+import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import timber.log.Timber;
 import uk.co.ribot.androidboilerplate.data.DataManager;
 import uk.co.ribot.androidboilerplate.data.model.Ribot;
 import uk.co.ribot.androidboilerplate.injection.ConfigPersistent;
 import uk.co.ribot.androidboilerplate.ui.base.BasePresenter;
-import uk.co.ribot.androidboilerplate.util.RxUtil;
 
 @ConfigPersistent
 public class MainPresenter extends BasePresenter<MainMvpView> {
 
     private final DataManager mDataManager;
-    private Disposable mDisposable;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Inject
     public MainPresenter(DataManager dataManager) {
@@ -35,23 +33,22 @@ public class MainPresenter extends BasePresenter<MainMvpView> {
     @Override
     public void detachView() {
         super.detachView();
-        if (mDisposable != null) mDisposable.dispose();
+        if (compositeDisposable != null) compositeDisposable.dispose();
     }
 
     public void loadRibots() {
         checkViewAttached();
-        RxUtil.dispose(mDisposable);
         mDataManager.getRibots()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new Observer<List<Ribot>>() {
+                .subscribe(new SingleObserver<List<Ribot>>() {
                     @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        mDisposable = d;
+                    public void onSubscribe(Disposable d) {
+                        compositeDisposable.add(d);
                     }
 
                     @Override
-                    public void onNext(@NonNull List<Ribot> ribots) {
+                    public void onSuccess(List<Ribot> ribots) {
                         if (ribots.isEmpty()) {
                             getMvpView().showRibotsEmpty();
                         } else {
@@ -60,14 +57,8 @@ public class MainPresenter extends BasePresenter<MainMvpView> {
                     }
 
                     @Override
-                    public void onError(@NonNull Throwable e) {
-                        Timber.e(e, "There was an error loading the ribots.");
+                    public void onError(Throwable e) {
                         getMvpView().showError();
-                    }
-
-                    @Override
-                    public void onComplete() {
-
                     }
                 });
     }

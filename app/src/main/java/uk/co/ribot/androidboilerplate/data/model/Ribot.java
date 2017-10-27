@@ -1,28 +1,39 @@
 package uk.co.ribot.androidboilerplate.data.model;
 
+import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
 
-import com.google.auto.value.AutoValue;
-import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
+public class Ribot implements Parcelable {
 
-@AutoValue
-public abstract class Ribot implements Comparable<Ribot>, Parcelable {
+    public Profile profile;
 
-    public abstract Profile profile();
-
-    public static Ribot create(Profile profile) {
-        return new AutoValue_Ribot(profile);
-    }
-
-    public static TypeAdapter<Ribot> typeAdapter(Gson gson) {
-        return new AutoValue_Ribot.GsonTypeAdapter(gson);
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     @Override
-    public int compareTo(@NonNull Ribot another) {
-        return profile().name().first().compareToIgnoreCase(another.profile().name().first());
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(this.profile, flags);
     }
+
+    public Ribot() {
+    }
+
+    protected Ribot(Parcel in) {
+        this.profile = in.readParcelable(Profile.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator<Ribot> CREATOR = new Parcelable.Creator<Ribot>() {
+        @Override
+        public Ribot createFromParcel(Parcel source) {
+            return new Ribot(source);
+        }
+
+        @Override
+        public Ribot[] newArray(int size) {
+            return new Ribot[size];
+        }
+    };
 }
 
